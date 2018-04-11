@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Riverford Data Analytics</title>
+        <link rel="stylesheet" href="css/style.css">
+        <script src="js/Chart.bundle.js"></script>
+        <style type="text/css">
+            /* Chart.js */
+            @-webkit-keyframes chartjs-render-animation {
+                from {
+                    opacity: 0.99
+                }
+                to {
+                    opacity: 1
+                }
+            }
+
+            @keyframes chartjs-render-animation {
+                from {
+                    opacity: 0.99
+                }
+                to {
+                    opacity: 1
+                }
+            }
+
+            .chartjs-render-monitor {
+                -webkit-animation: chartjs-render-animation 0.001s;
+                animation: chartjs-render-animation 0.001s;
+            }
+        </style>
+        <script src="./utils.js"></script>
+    </head>
+    <body>
+      <header>
+
+      </header>
+        <h1>Riverford Data Analytics</h1>
+
+        <!-- TODO Add HTML containers for data visualisation -->
+
+        <!--<div class="chart-container" style="position: relative; height:40vh; width:80vw">
+            <canvas id="chart"></canvas>
+            <canvas id="chart-0" class="chartjs-render-monitor"></canvas>
+        </div>-->
+        <div id="aligned">
+          <div class="label">Our products</div>
+          <div class="chart_container chart1">
+            <canvas id="chart"></canvas>
+          </div>
+
+          <div class="chart_container chart2">
+            <canvas id="chart-0" class="chartjs-render-monitor"></canvas>
+          </div>
+        </div>
+
+
+        <p id="Data"></p>
+
+        <script>
+            var sourceData;
+
+            // Initial data load
+            fetch("data.json", {
+                method: "GET",
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                })
+            }).then(function (body) {
+                return body.json();
+            }).then(function (data) {
+                sourceData = data;
+                console.log(sourceData);
+
+                // TODO: Build data visualisation
+
+                function precisionRound(number, precision) {
+                  var factor = Math.pow(10, precision);
+                  return Math.round(number * factor) / factor;
+                }
+
+                function get10firstValues(cat) {
+                  var ret = new Array(10);
+                  var sources = Object.values(sourceData[cat]).sort(function compareNombres(a, b) { return b - a; });
+                  for (var i = 0; i < ret.length; i++) {
+                    ret[i] = sources[i];
+                  }
+                  return ret;
+                }
+
+                function get10firstNames(cat) {
+                  var ret = new Array(10);
+                  var v = Object.values(sourceData[cat])
+                  var sources = Object.keys(sourceData[cat]).sort(function compareNombres(a, b) { return v[b] - v[a]; });
+                  for (var i = 0; i < ret.length; i++) {
+                    ret[i] = sources[i];
+                  }
+                  return ret;
+                }
+
+                var types = Object.keys(sourceData).map(function(e) { return e; });
+                var nbTypes = types.slice().map( e => Object.values(sourceData[e]).reduce( (a,b) => a+b ) );
+                var nbTypesPercent = nbTypes.slice().map( e => precisionRound(e/(nbTypes.reduce( (a,b) => a+b )) * 100, 1) );
+                var colors = [
+                  'rgba(255, 99, 132, 0.6)',
+                  'rgba(54, 162, 235, 0.6)',
+                  'rgba(255, 206, 86, 0.6)',
+                  'rgba(75, 192, 192, 0.6)',
+                  'rgba(153, 102, 255, 0.6)',
+                  'rgba(255, 159, 64, 0.6)'
+                ]
+
+                console.log(types);
+                console.log(nbTypes);
+                console.log(get10firstValues("Meat")[9])
+                console.log(precisionRound(get10firstValues("Meat")[9],-2))
+                console.log(Math.log(get10firstValues("Meat")[0]/precisionRound(get10firstValues("Meat")[9],-4))*10000)
+                console.log(Math.log(get10firstValues("Meat")[9]/precisionRound(get10firstValues("Meat")[9],-4))*10000)
+
+                var theHelp = Chart.helpers;
+                var canvas = document.getElementById("chart");
+                var ctx = canvas.getContext('2d');
+                var myChart = new Chart(ctx, {
+                  type: 'doughnut',
+                  data: {
+                    labels: types,
+                    datasets: [{
+                      data: nbTypes,
+                      backgroundColor: colors
+                    }]
+                  },
+                  options: {
+                    tooltips: {
+                      callbacks: {
+                        label: function(tooltipItem, chartData) {
+                          return chartData.labels[tooltipItem.index] + " at " + nbTypesPercent[tooltipItem.index] + "%"
+                        }
+                      }
+                    },
+                    title: {
+                      display: true,
+                      text: 'Our products',
+                      position: 'top'
+                    },
+                    rotation: -0.4 * Math.PI,
+                    animation: {
+                      duration:1000,
+                      animateRotate:true
+                    },
+                    legend: {
+                      display:true,
+                      labels: {
+                        generateLabels: function(chart) {
+                        var data = chart.data;
+                        if (data.labels.length && data.datasets.length) {
+                          return data.labels.map(function(label, i) {
+                            var meta = chart.getDatasetMeta(0);
+                            var ds = data.datasets[0];
+                            var arc = meta.data[i];
+                            var custom = arc && arc.custom || {};
+                            var getValueAtIndexOrDefault = theHelp.getValueAtIndexOrDefault;
+                            var arcOpts = chart.options.elements.arc;
+                            var fill = custom.backgroundColor ? custom.backgroundColor : getValueAtIndexOrDefault(ds.backgroundColor, i, arcOpts.backgroundColor);
+                            var stroke = custom.borderColor ? custom.borderColor : getValueAtIndexOrDefault(ds.borderColor, i, arcOpts.borderColor);
+                            var bw = custom.borderWidth ? custom.borderWidth : getValueAtIndexOrDefault(ds.borderWidth, i, arcOpts.borderWidth);
+                              return {
+                              // And finally :
+                              text: label,
+                              fillStyle: fill,
+                              strokeStyle: stroke,
+                              lineWidth: bw,
+                              hidden: isNaN(ds.data[i]) || meta.data[i].hidden,
+                              index: i
+                            };
+                          });
+                        }
+                        return [];
+                        }
+                      }
+                    }
+                  }
+                });
+
+                var categ_default = "Veg";
+
+                var DATA_COUNT = 16;
+            		var MIN_XY = -150;
+            		var MAX_XY = 100;
+                var MAX_V = 2000;
+
+            		var utils = Samples.utils;
+
+            		utils.srand(110);
+
+                function generateDataFromCateg(categ) {
+            			var data = [];
+            			var i;
+                  var t = get10firstValues(categ);
+                  var X = [-3,2,7,-5,0,-10,-1,8,5,-6];
+                  var Y = [-10,-1,-3,2,5,0,8,-5,6,-6];
+                  var T = [3,5,2,6,10,9,4,7,5,4];
+                  var tmp = 0;
+
+            			for (i = 0; i < 10; ++i) {
+                    tmp = Math.log(t[i]/precisionRound(t[9],-4))*20000;
+                    if(tmp > MAX_V){
+                      tmp = MAX_V;
+                    }
+            				data.push({
+            					x: X[i],
+            					y: t[i],
+                      //v: T[i]*100
+            					v: tmp
+            				});
+            			}
+
+            			return data;
+            		}
+
+            		var data = {
+                  labels: get10firstNames(categ_default),
+            			datasets: [{
+            				data: generateDataFromCateg(categ_default)
+            			}]
+            		};
+
+            		var options = {
+            			aspectRatio: 1,
+            			legend: false,
+            			tooltips: {
+                    callbacks: {
+                      label: function(tooltipItem, chartData) {
+                        return chartData.labels[tooltipItem.index]
+                      }
+                    }
+                  },
+
+            			elements: {
+            				point: {
+            					backgroundColor: colors[types.indexOf(categ_default)],
+
+            					borderColor: colors[(types.indexOf(categ_default)+1)%types.length],
+
+            					borderWidth: function(context) {
+            						return Math.min(Math.max(1, context.datasetIndex + 1), 8);
+            					},
+
+            					hoverBackgroundColor: 'transparent',
+
+            					hoverBorderColor: function(context) {
+            						return utils.color(context.datasetIndex);
+            					},
+
+            					hoverBorderWidth: function(context) {
+            						var value = context.dataset.data[context.dataIndex];
+            						return Math.round(8 * value.v / 1000);
+            					},
+
+            					radius: function(context) {
+            						var value = context.dataset.data[context.dataIndex];
+            						var size = context.chart.width;
+            						var base = Math.abs(value.v) / 1000;
+            						return (size / 24) * base;
+            					}
+            				}
+            			}
+            		};
+
+            		var chart = new Chart('chart-0', {
+            			type: 'bubble',
+            			data: data,
+            			options: options
+            		});
+
+                function changeDataset(categ) {
+                  chart.data.datasets.forEach( function(dataset) {
+            				dataset.data = generateDataFromCateg(categ);
+            			});
+                  chart.data.labels = get10firstNames(categ);
+                  chart.options.elements.point.backgroundColor = colors[types.indexOf(categ)];
+                  chart.options.elements.point.borderColor = colors[(types.indexOf(categ)+1)%types.length];
+            			chart.update();
+            		}
+
+                canvas.onclick = function(evt) {
+                  var activePoints = myChart.getElementsAtEvent(evt);
+                  if (activePoints[0]) {
+                    var chartData = activePoints[0]['_chart'].config.data;
+                    var idx = activePoints[0]['_index'];
+
+                    var label = chartData.labels[idx];
+                    var value = chartData.datasets[0].data[idx];
+
+                    changeDataset(label);
+                  }
+                };
+            });
+        </script>
+    </body>
+</html>
