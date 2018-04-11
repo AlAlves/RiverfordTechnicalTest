@@ -71,7 +71,6 @@
                 return body.json();
             }).then(function (data) {
                 sourceData = data;
-                console.log(sourceData);
 
                 // TODO: Build data visualisation
 
@@ -110,13 +109,6 @@
                   'rgba(153, 102, 255, 0.6)',
                   'rgba(255, 159, 64, 0.6)'
                 ]
-
-                console.log(types);
-                console.log(nbTypes);
-                console.log(get10firstValues("Meat")[9])
-                console.log(precisionRound(get10firstValues("Meat")[9],-2))
-                console.log(Math.log(get10firstValues("Meat")[0]/precisionRound(get10firstValues("Meat")[9],-4))*10000)
-                console.log(Math.log(get10firstValues("Meat")[9]/precisionRound(get10firstValues("Meat")[9],-4))*10000)
 
                 var theHelp = Chart.helpers;
                 var canvas = document.getElementById("chart");
@@ -211,7 +203,6 @@
             				data.push({
             					x: X[i],
             					y: t[i],
-                      //v: T[i]*100
             					v: tmp
             				});
             			}
