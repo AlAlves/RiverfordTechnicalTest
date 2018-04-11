@@ -30,7 +30,6 @@
                 animation: chartjs-render-animation 0.001s;
             }
         </style>
-        <script src="./utils.js"></script>
     </head>
     <body>
       <header>
@@ -122,65 +121,70 @@
                 var theHelp = Chart.helpers;
                 var canvas = document.getElementById("chart");
                 var ctx = canvas.getContext('2d');
-                var myChart = new Chart(ctx, {
-                  type: 'doughnut',
-                  data: {
-                    labels: types,
-                    datasets: [{
-                      data: nbTypes,
-                      backgroundColor: colors
-                    }]
-                  },
-                  options: {
-                    tooltips: {
-                      callbacks: {
-                        label: function(tooltipItem, chartData) {
-                          return chartData.labels[tooltipItem.index] + " at " + nbTypesPercent[tooltipItem.index] + "%"
-                        }
+
+                var cdata = {
+                  labels: types,
+                  datasets: [{
+                    data: nbTypes,
+                    backgroundColor: colors
+                  }]
+                }
+
+                var coptions = {
+                  tooltips: {
+                    callbacks: {
+                      label: function(tooltipItem, chartData) {
+                        return chartData.labels[tooltipItem.index] + " at " + nbTypesPercent[tooltipItem.index] + "%"
                       }
-                    },
-                    title: {
-                      display: false,
-                      text: 'Our products',
-                      position: 'top'
-                    },
-                    rotation: -0.4 * Math.PI,
-                    animation: {
-                      duration:1000,
-                      animateRotate:true
-                    },
-                    legend: {
-                      display:true,
-                      labels: {
-                        generateLabels: function(chart) {
-                        var data = chart.data;
-                        if (data.labels.length && data.datasets.length) {
-                          return data.labels.map(function(label, i) {
-                            var meta = chart.getDatasetMeta(0);
-                            var ds = data.datasets[0];
-                            var arc = meta.data[i];
-                            var custom = arc && arc.custom || {};
-                            var getValueAtIndexOrDefault = theHelp.getValueAtIndexOrDefault;
-                            var arcOpts = chart.options.elements.arc;
-                            var fill = custom.backgroundColor ? custom.backgroundColor : getValueAtIndexOrDefault(ds.backgroundColor, i, arcOpts.backgroundColor);
-                            var stroke = custom.borderColor ? custom.borderColor : getValueAtIndexOrDefault(ds.borderColor, i, arcOpts.borderColor);
-                            var bw = custom.borderWidth ? custom.borderWidth : getValueAtIndexOrDefault(ds.borderWidth, i, arcOpts.borderWidth);
-                              return {
-                              // And finally :
-                              text: label,
-                              fillStyle: fill,
-                              strokeStyle: stroke,
-                              lineWidth: bw,
-                              hidden: isNaN(ds.data[i]) || meta.data[i].hidden,
-                              index: i
-                            };
-                          });
-                        }
-                        return [];
-                        }
+                    }
+                  },
+                  title: {
+                    display: false,
+                    text: 'Our products',
+                    position: 'top'
+                  },
+                  rotation: -0.4 * Math.PI,
+                  animation: {
+                    duration:1000,
+                    animateRotate:true
+                  },
+                  legend: {
+                    display:true,
+                    labels: {
+                      generateLabels: function(chart) {
+                      var data = chart.data;
+                      if (data.labels.length && data.datasets.length) {
+                        return data.labels.map(function(label, i) {
+                          var meta = chart.getDatasetMeta(0);
+                          var ds = data.datasets[0];
+                          var arc = meta.data[i];
+                          var custom = arc && arc.custom || {};
+                          var getValueAtIndexOrDefault = theHelp.getValueAtIndexOrDefault;
+                          var arcOpts = chart.options.elements.arc;
+                          var fill = custom.backgroundColor ? custom.backgroundColor : getValueAtIndexOrDefault(ds.backgroundColor, i, arcOpts.backgroundColor);
+                          var stroke = custom.borderColor ? custom.borderColor : getValueAtIndexOrDefault(ds.borderColor, i, arcOpts.borderColor);
+                          var bw = custom.borderWidth ? custom.borderWidth : getValueAtIndexOrDefault(ds.borderWidth, i, arcOpts.borderWidth);
+                            return {
+                            // And finally :
+                            text: label,
+                            fillStyle: fill,
+                            strokeStyle: stroke,
+                            lineWidth: bw,
+                            hidden: isNaN(ds.data[i]) || meta.data[i].hidden,
+                            index: i
+                          };
+                        });
+                      }
+                      return [];
                       }
                     }
                   }
+                }
+
+                var myChart = new Chart(ctx, {
+                  type: 'doughnut',
+                  data: cdata,
+                  options: coptions
                 });
 
                 var categ_default = "Veg";
@@ -189,10 +193,6 @@
             		var MIN_XY = -150;
             		var MAX_XY = 100;
                 var MAX_V = 2000;
-
-            		var utils = Samples.utils;
-
-            		utils.srand(110);
 
                 function generateDataFromCateg(categ) {
             			var data = [];
@@ -263,9 +263,7 @@
 
             					hoverBackgroundColor: 'transparent',
 
-            					hoverBorderColor: function(context) {
-            						return utils.color(context.datasetIndex);
-            					},
+            					hoverBorderColor: colors[(types.indexOf(categ_default)+2)%types.length],
 
             					hoverBorderWidth: function(context) {
             						var value = context.dataset.data[context.dataIndex];
@@ -295,6 +293,7 @@
                   chart.data.labels = get10firstNames(categ);
                   chart.options.elements.point.backgroundColor = colors[types.indexOf(categ)];
                   chart.options.elements.point.borderColor = colors[(types.indexOf(categ)+1)%types.length];
+                  chart.options.elements.point.hoverBorderColor = colors[(types.indexOf(categ)+2)%types.length];
                   chart.options.title.text = categ;
             			chart.update();
             		}
