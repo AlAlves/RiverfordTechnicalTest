@@ -140,7 +140,7 @@
                       }
                     },
                     title: {
-                      display: true,
+                      display: false,
                       text: 'Our products',
                       position: 'top'
                     },
@@ -229,6 +229,11 @@
             		var options = {
             			aspectRatio: 1,
             			legend: false,
+                  title: {
+                    display: true,
+                    text: categ_default,
+                    position: 'bottom'
+                  },
             			tooltips: {
                     callbacks: {
                       label: function(tooltipItem, chartData) {
@@ -281,6 +286,7 @@
                   chart.data.labels = get10firstNames(categ);
                   chart.options.elements.point.backgroundColor = colors[types.indexOf(categ)];
                   chart.options.elements.point.borderColor = colors[(types.indexOf(categ)+1)%types.length];
+                  chart.options.title.text = categ;
             			chart.update();
             		}
 
